@@ -38,8 +38,11 @@ scene('start', () => {
 
     onKeyDown('space', () => {
         go('game', { score: 0, count: 0 });
+
+        play('theme');
     });
-    play('theme');
+    
+
 });
 
 
