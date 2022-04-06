@@ -1,4 +1,4 @@
-import kaboom from '../node_modules/kaboom/dist/kaboom.mjs';
+import kaboom from './kaboom/dist/kaboom.mjs';
 
 
 kaboom({
