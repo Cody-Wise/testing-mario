@@ -1,4 +1,4 @@
-import kaboom from '../node_modules/kaboom/dist/kaboom.mjs';
+import kaboom from './node_modules/kaboom/dist/kaboom.mjs';
 
 
 kaboom({
@@ -24,6 +24,23 @@ loadSprite('pipe', 'assets/pipe.png');
 loadRoot('http://localhost:5501/assets/');
 loadSound('jump', 'marioJump.mp3');
 loadSound('theme', 'mainTheme.mp3');
+loadSprite("start-screen", "/start-screen.png");
+
+
+
+scene('start', () => {
+    add([
+        sprite("start-screen"),origin('center'), pos(475, 150), scale(0.65)
+    ])
+    add([
+        text("Press Spacebar To Start"),origin('center'), pos(475, 275), scale(0.25)
+    ])
+
+    onKeyDown('space', () => {
+        go('game', { score: 0, count: 0 });
+    });
+    play('theme');
+});
 
 
 
@@ -122,7 +139,6 @@ scene('game', ({ score, count }) => {
         '@': [sprite('mushroom'), solid(), area(), 'mushroom', body()],
     };
 
-    // play('theme');
 
     const username = add([
         text('MARIO'),
@@ -180,4 +196,4 @@ scene('game', ({ score, count }) => {
     });
 });
 
-go('game', { score: 0, count: 0 });
+go('start', { score: 0, count: 0 });
