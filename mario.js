@@ -9,6 +9,7 @@ kaboom({
     background: [0, 0, 0, 1],
 });
 
+
 //sprites, blocks to build world
 loadSprite('coin', 'assets/coin.png');
 loadSprite('brick', 'assets/brick.png');
@@ -29,17 +30,19 @@ loadSprite("start-screen", "/start-screen.png");
 
 
 scene('start', () => {
+    
     add([
         sprite("start-screen"),origin('center'), pos(475, 150), scale(0.65)
     ])
     add([
         text("Press Spacebar To Start"),origin('center'), pos(475, 275), scale(0.25)
     ])
+    
 
     onKeyDown('space', () => {
         go('game', { score: 0, count: 0 });
 
-        play('theme');
+        // play('theme');
     });
     
 
@@ -47,56 +50,107 @@ scene('start', () => {
 
 
 
-scene('game', ({ score, count }) => {
+
+scene('game', ({ score, count, time }) => {
+
+    // onUpdate(()=> {
+    //     setTimeout(countdown, 1000);
+    // })
+
+//     let timeLeft = 300;
+// function countdown() {
+    
+//     timeLeft--;
+//     if (timeLeft > 0) {
+//         setTimeout(countdown, 1000);
+//     }
+// }
+    
+    
     layers(['bg', 'obj', 'ui'], 'obj');
 
+    //create maps for the world
     const map = [
-        '                                     ',
-        '                                     ',
-        '        ***                          ',
-        '                                     ',
-        '                                     ',
-        '                 ****                ',
-        '                                     ',
-        '                                     ',
-        '                 ++++                ',
-        '                                     ',
-        '                                     ',
-        '     **  +%+#+                       ',
-        '                                     ',
-        '                         ?           ',
-        '                    ^  ^             ',
-        '===========================    ======',
+        '                                                                           ',
+        '                                           %%%%                            ',
+        '                                                                           ',
+        '                                                          ===              ',
+        '                                                                           ',
+        '     *   ===%=                          %===%%==*=             %%%         ',
+        '                                  ===                   =                  ',
+        '                                                        =                  ',
+        '        *           ^   ^                             ^ =                ? ',
+        '==============================   ========================    ==============',
     ];
 
-    const player = add([
-        sprite('mario'), solid(), area(),
+    //configuring the map to display
+    const levelConfig = {
+        width: 20,
+        height: 20,
+        '=': () => [sprite('brick'), solid(), area()],
+        '*': () => [sprite('coin'), area(), 'coin'],
+        '%': () => [sprite('surprise-box'), solid(), area(), 'coin-surprise'],
+        '#': () => [sprite('surprise-box'), solid(), area(), 'mushroom-surprise'],
+        '^': () => [sprite('evil-mushroom'), solid(), area(), 'evil-mushroom', body()],
+        '?': () => [sprite('pipe'), solid(), area()],
+        '+': () => [sprite('block'), solid(), area()],
+        '@': () => [sprite('mushroom'), solid(), area(), 'mushroom', body()],
+    };
+
+    const gameLevel = addLevel(map, levelConfig);
+
+    const mario = add([
+        sprite('mario'), 
+        solid(), 
+        area(),
         pos(30, 0),
         body(),
-        origin('bot')
+        origin('bot'),
+        'mario'
     ]);
 
+    //moving mario
     const marioSpeed = 120;
-    const marioJumpHeight = 400;
+    const marioJumpHeight = 600;
     const coinScore = 200;
-    const mushroomMove = 20;
+    
 
     onKeyDown('left', () => {
-        player.move(-marioSpeed, 0);
+        mario.move(-marioSpeed, 0);
     });
 
     onKeyDown('right', () => {
-        player.move(marioSpeed, 0);
+        mario.move(marioSpeed, 0);
     });
 
     onKeyPress('space', () => {
-        if (player.grounded()) {
-            player.jump(marioJumpHeight);
+        if (mario.isGrounded()) {
+            mario.jump(marioJumpHeight);
             play('jump');
         }
     });
 
-    player.on('headbump', (obj) => {
+    //mario actions
+    mario.onCollide('coin', (obj) => {
+        destroy(obj);
+        scoreLabel.value += coinScore;
+        scoreLabel.text = scoreLabel.value;
+        console.log(mario.isGrounded());
+    });
+
+    on('mario', 'coin-surprise', (box) => {
+
+    });
+
+    // mario.onCollide('coin-surprise', (obj) => {
+    //     console.log(isBottom());
+    //     isBottom:()=>35.60<0
+    //     gameLevel.spawn('*', obj.gridPos.sub(0, 1));
+    //     gameLevel.spawn('+', obj.gridPos.sub(0, 0));
+    //     destroy(obj);
+    // });
+
+    mario.on('headbutt', (obj) => {
         if (obj.is('coin-surprise')) {
             gameLevel.spawn('*', obj.gridPos.sub(0, 1));
             gameLevel.spawn('+', obj.gridPos.sub(0, 0));
@@ -109,6 +163,8 @@ scene('game', ({ score, count }) => {
         }
     });
 
+    //moving the mushrooms both evil and powerups
+    const mushroomMove = 20;
     action('mushroom', (e) => {
         e.move(mushroomMove, 0);
     });
@@ -117,86 +173,100 @@ scene('game', ({ score, count }) => {
         e.move(-mushroomMove, 0);
     });
 
-    // player.collides('mushroom', (e) => {
+    // mario.collides('mushroom', (e) => {
     //     destroy(e);
-    //     player.biggify(10);
+    //     mario.biggify(10);
     // });
 
-    player.collides('coin', (e) => {
-        destroy(e);
-        scoreLabel.value += coinScore;
-        scoreLabel.text = scoreLabel.value;
-        console.log(score);
-    });
 
-    const levelConfig = {
-        width: 20,
-        height: 20,
-        '=': [sprite('brick'), solid(), area()],
-        '*': [sprite('coin'), 'coin'],
-        '%': [sprite('surprise-box'), solid(), area(), 'coin-surprise'],
-        '#': [sprite('surprise-box'), solid(), area(), 'mushroom-surprise'],
-        '^': [sprite('evil-mushroom'), solid(), area(), 'evil-mushroom', body()],
-        '?': [sprite('pipe'), solid(), area()],
-        '+': [sprite('block'), solid(), area()],
-        '@': [sprite('mushroom'), solid(), area(), 'mushroom', body()],
-    };
 
+
+    // play('theme');
 
     const username = add([
-        text('MARIO'),
+        text('MARIO', {
+            size: 18,
+            width: 320, 
+            font: 'sinko', 
+        }),
         pos(30, 6),
+        fixed()
     ]);
+
+     
+
+    console.log(username);
     const scoreLabel = add([
-        text(score),
-        pos(60, 20),
+        text(score, {
+            size: 18,
+            width: 320, 
+            font: 'sinko', 
+        }),
+        pos(60, 30),
         layer('ui'),
+        fixed(),
         {
             value: score
         }
     ]);
+    let timeLeft = 10
+
+    const timer = add([
+        
+        text(timeLeft, {
+            size: 18,
+            width: 320, 
+            font: 'sinko', 
+        }),
+        pos(80, 30),
+        layer('ui'),
+        fixed(),
+        {
+            value: time
+        }
+
+        
+    ]);
+
+    add([sprite('coin'), pos(200, 32), layer('ui'), fixed()]);
+    
     const coinCount = add([
-        text(sprite('coin') + 'x' + count),
-        pos(100, 20),
+        text('x' + count, {
+            size: 18,
+            width: 320, 
+            font: 'sinko', 
+        }),
+        pos(220, 30),
+        fixed(),
         layer('ui'),
         {
             value: count
         }
     ]);
 
-    const gameLevel = addLevel([
-        "                          $",
-        "                          $",
-        "           $$         =   $",
-        "  %      ====         =   $",
-        "                      =    ",
-        "       ^^      = >    =   &",
-        "===========================",
-    ], {
-        // define the size of each block
-        width: 32,
-        height: 32,
-        // define what each symbol means, by a function returning a component list (what will be passed to add())
-        "=": () => [
-            sprite('block'),
-            area(),
-            solid(),
-        ],
-        "$": () => [
-            sprite('coin'),
-            area(),
-            pos(0, -9),
-        ],
-        "^": () => [
-            sprite('mushroom'),
-            area(),
-            "danger",
-        ],
+    mario.action(() => {
+        camPos(mario.pos);
     });
 
-    player.action(() => {
-        camPos(player.pos);
-    });
+    const levelTimerReference = levelTimer(timer) 
+
+    levelTimerReference;
+
+
+
 });
 
+
 go('start', { score: 0, count: 0 });
+
+function levelTimer(currentLevel, timeLeft, timer) {
+    return setInterval(() => {
+        if (timeLeft == 0) {
+            levelsPassed[currentLevel] = true
+            go("winScreen")
+        }
+        timeLeft--
+        timer.use(text(timeLeft, {size: 64, font: "sinko"}))
+    }, 1000)
+
+}
