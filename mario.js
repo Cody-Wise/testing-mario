@@ -259,12 +259,9 @@ scene('game', ({ score, count, time }) => {
 
 go('start', { score: 0, count: 0 });
 
-function levelTimer(currentLevel, timeLeft, timer) {
+function levelTimer(timeLeft, timer) {
     return setInterval(() => {
-        if (timeLeft == 0) {
-            levelsPassed[currentLevel] = true
-            go("winScreen")
-        }
+        
         timeLeft--
         timer.use(text(timeLeft, {size: 64, font: "sinko"}))
     }, 1000)
